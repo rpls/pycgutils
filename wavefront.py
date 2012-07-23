@@ -31,7 +31,6 @@
 #  For more information, please refer to <http://unlicense.org/>
 #
 ##############################################################################
-import re
 import numpy as np
 
 OBJFILE_FORMAT_V = 1
@@ -42,11 +41,6 @@ OBJFILE_FORMAT_VTN = 7
 OBJFILE_FORMAT_V_BIT = 1
 OBJFILE_FORMAT_N_BIT = 2
 OBJFILE_FORMAT_T_BIT = 4
-
-OBJFILE_V_REGEX = re.compile(r'(\d+)')
-OBJFILE_VN_REGEX = re.compile(r'(\d+)//(\d+)')
-OBJFILE_VT_REGEX = re.compile(r'(\d+)/(\d+)')
-OBJFILE_VTN_REGEX = re.compile(r'(\d+)/(\d+)/(\d+)')
 
 class ObjFileParser(object):
     """
@@ -133,6 +127,7 @@ class ObjFileParser(object):
         self.vt.append(vt)
     
     def _f(self, args):
+        # TODO: The whole thing is a mess. REDO IT!
         args = args.split()
         if len(args) < 3:
             raise Exception, 'A face must have at least 3 vertices.'

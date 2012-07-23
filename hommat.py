@@ -32,26 +32,26 @@
 #
 ##############################################################################
 import numpy as np
-from math import pi, cos, sin, tan
+import math
 
 def identity():
     '''Create the identity matrix.'''
     return np.identity(4, dtype=np.float32)
     
-def translation(old, dir):
+def translation(old, trans):
     '''Multiplies the old matrix with a translation in dir.'''
     M = np.identity(4, dtype=np.float32)
-    M[:3, 3] = dir[:3]
+    M[:3, 3] = trans[:3]
     return np.dot(old, M)
     
-def rotation(old, angle, dir):
-    '''Multiplies the old matrix with a rotation around angle.'''
-    cosa = cos(angle * pi / 180)
-    sina = sin(angle * pi / 180)
+def rotation(old, angle, vec):
+    '''Multiplies the old matrix with a rotation around a vector.'''
+    cosa = math.cos(angle * math.pi / 180)
+    sina = math.sin(angle * math.pi / 180)
     cosa1 = 1 - cosa
-    M = np.array([[dir[0]**2 * cosa1 + cosa             , dir[0] * dir[1] * cosa1 - dir[2]*sina, dir[0] * dir[2] * cosa1 + dir[1]*sina, 0],
-                  [dir[1] * dir[0] * cosa1 + dir[2]*sina, dir[1]**2 * cosa1 + cosa             , dir[1] * dir[2] * cosa1 - dir[0]*sina, 0],
-                  [dir[2] * dir[0] * cosa1 - dir[1]*sina, dir[2] * dir[1] * cosa1 + dir[0]*sina, dir[2]**2 * cosa1 + cosa             , 0],
+    M = np.array([[vec[0]**2 * cosa1 + cosa             , vec[0] * vec[1] * cosa1 - vec[2]*sina, vec[0] * vec[2] * cosa1 + vec[1]*sina, 0],
+                  [vec[1] * vec[0] * cosa1 + vec[2]*sina, vec[1]**2 * cosa1 + cosa             , vec[1] * vec[2] * cosa1 - vec[0]*sina, 0],
+                  [vec[2] * vec[0] * cosa1 - vec[1]*sina, vec[2] * vec[1] * cosa1 + vec[0]*sina, vec[2]**2 * cosa1 + cosa             , 0],
                   [0,0,0,1]
                  ], dtype=np.float32)
     return np.dot(old, M)
@@ -76,7 +76,7 @@ def ortho(old, l, r, b, t, n, f):
                     
 def perspective(old, fovy, aspect, near, far):
     '''Multiplies the old matrix with a perspective projection.'''
-    f = 1.0 / tan(fovy * pi / 360.0)
+    f = 1.0 / math.tan(fovy * math.pi / 360.0)
     M = np.array([[f / aspect, 0, 0, 0],
                   [0, f, 0, 0],
                   [0, 0, float(far + near) / (near - far), (2.0 * far * near) / (near - far)],

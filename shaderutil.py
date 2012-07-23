@@ -31,73 +31,81 @@
 #  For more information, please refer to <http://unlicense.org/>
 #
 ##############################################################################
-from OpenGL.GL import *
+from OpenGL.GL import glCreateProgram, glDeleteProgram, glAttachShader, glLinkProgram, glGetProgramiv, glGetProgramInfoLog, glUseProgram
+from OpenGL.GL import glCreateShader, glDeleteShader, glShaderSource, glCompileShader, glGetShaderInfoLog, glGetShaderiv
+from OpenGL.GL import glGetUniformLocation, glGetAttribLocation
+from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_COMPILE_STATUS, GL_LINK_STATUS, GL_TRUE
 
-def loadShader(filename, shadertype):
+class Shader(object):
     '''
-    Creates, loads and compiles a shader by filename.
+    A utility/wrapper for OpenGL Shader.
     '''
-    shader = None
-    try:
-        with open(filename) as f:
+    def __init__(self, vsource, fsource, gsource = None):
+        self.uniformlocs = {}
+        self.attributelocs = {}
+        self.program = None
+        try:
+            shaders = []
+            shaders.append(self._createShader(GL_VERTEX_SHADER, vsource))
+            if gsource != None:
+                shaders.append(self._createShader(GL_GEOMETRY_SHADER, gsource))
+            shaders.append(self._createShader(GL_FRAGMENT_SHADER, fsource))
+            self.program = self._createProgram(shaders)
+            # Flag shader for deletion.
+        except:
+            if self.program != None:
+                glDeleteProgram(self.program)
+            raise
+        finally:
+            for shader in shaders:
+                try:
+                    glDeleteShader(shader)
+                except:
+                    pass
+    
+    def _createShader(self, shadertype, source):
+        try:
+            shader = None
             shader = glCreateShader(shadertype)
-            glShaderSource(shader, f.readlines())
+            glShaderSource(shader, source)
             glCompileShader(shader)
             if glGetShaderiv(shader, GL_COMPILE_STATUS) != GL_TRUE:
                 info = glGetShaderInfoLog(shader)
                 raise Exception, "Unable to compile shader. Infolog:\n%s" % (info,)
             return shader
-    except Exception as e:
-        if shader != None:
-            glDeleteShader(shader)
-        raise
-
-def createProgram(fnvert, fnfrag):
-    '''
-    Creates, loads, compiles and links a program using two shaderfiles.
-    '''
-    prog = None
-    vertsh = None
-    fragsh = None
-    try:
-        prog = glCreateProgram()
+        except Exception:
+            # Cleanup on exception
+            if shader != None:
+                glDeleteShader(shader)
+            raise
     
-        vertsh = loadShader(fnvert, GL_VERTEX_SHADER)
-        fragsh = loadShader(fnfrag, GL_FRAGMENT_SHADER)
-
-        glAttachShader(prog, vertsh)
-        glAttachShader(prog, fragsh)
-        glLinkProgram(prog)
+    def _createProgram(self, shaders):
+        prog = None
+        try:
+            prog = glCreateProgram()
+            for shader in shaders: 
+                glAttachShader(prog, shader)
+            
+            glLinkProgram(prog)            
+            if glGetProgramiv(prog, GL_LINK_STATUS) != GL_TRUE:
+                info = glGetProgramInfoLog(prog)
+                raise Exception, "Unable to link program. Info log:\n%s" % (info)
+            
+            return prog
+        except Exception:
+            if prog != None:
+                glDeleteProgram(prog)
+            raise
         
-        if glGetProgramiv(prog, GL_LINK_STATUS) != GL_TRUE:
-            info = glGetProgramInfoLog(prog)
-            raise Exception, "Unable to link program. Info log:\n%s" % (info)
+    def use(self):
+        glUseProgram(self.program)
         
-        # Cleanup (don't worry, delete will only flag for deletion, if shaders are attached!)
-        glDeleteShader(vertsh)
-        vertsh = None
-        glDeleteShader(fragsh)
-        fragsh = None
+    def uniformlocation(self, name):
+        if name not in self.uniformlocs:
+                self.uniformlocs[name] = glGetUniformLocation(self.program, name)
+        return self.uniformlocs[name]
         
-        return prog
-    except Exception as e:
-        if prog != None:
-            glDeleteProgram(prog)
-        if vertsh != None:
-            glDeleteShader(vertsh)
-        if fragsh != None:
-            glDeleteShader(fragsh)
-        raise
-        
-def getUniformLocations(prog, *names):
-    '''
-    Retrieves the locations for uniforms in a program.
-    '''
-    return [glGetUniformLocation(prog, name) for name in names]
-        
-def getAttributeLocations(prog, *names):
-    '''
-    Retrieves the locations for attributes in a program.
-    '''
-    return [glGetAttribLocation(prog, name) for name in names]
-    
+    def attributelocation(self, name):
+        if name not in self.attributelocs:
+                self.attributelocs[name] = glGetAttribLocation(self.program, name)
+        return self.attributelocs[name]

@@ -284,7 +284,7 @@ GLFWcharfun          = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_int)
 # Prototypes
 ###############################################################################
 # GLFW initialization, termination and version querying
-glfwInit                     = __glfwdll__.glfwInit
+#glfwInit                     = __glfwdll__.glfwInit
 glfwTerminate                = __glfwdll__.glfwTerminate
 # glfwGetVersion               = __glfwdll__.glfwGetVersion
 
@@ -346,6 +346,12 @@ glfwSleep                    = __glfwdll__.glfwSleep
 glfwEnable                  = __glfwdll__.glfwEnable;
 glfwDisable                 = __glfwdll__.glfwDisable;
 
+# Custom function for glfwInit, since it changes the CWD sometimes.
+def glfwInit():
+    oldcwd = os.getcwd()
+    ret = __glfwdll__.glfwInit()
+    os.chdir(oldcwd)
+    return ret
 
 def glfwGetVersion():
     major, minor, rev = ctypes.c_int(0), ctypes.c_int(0), ctypes.c_int(0)

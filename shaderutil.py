@@ -35,6 +35,7 @@ from OpenGL.GL import glCreateProgram, glDeleteProgram, glAttachShader, glLinkPr
 from OpenGL.GL import glCreateShader, glDeleteShader, glShaderSource, glCompileShader, glGetShaderInfoLog, glGetShaderiv
 from OpenGL.GL import glGetUniformLocation, glGetAttribLocation
 from OpenGL.GL import GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_COMPILE_STATUS, GL_LINK_STATUS, GL_TRUE
+from OpenGL.raw.GL.VERSION.GL_3_0 import glBindFragDataLocation
 
 class Shader(object):
     '''
@@ -99,6 +100,9 @@ class Shader(object):
         
     def use(self):
         glUseProgram(self.program)
+        
+    def bindfragdata(self, colornumber, name):
+        glBindFragDataLocation(self.program, colornumber, name)
         
     def uniformlocation(self, name):
         if name not in self.uniformlocs:

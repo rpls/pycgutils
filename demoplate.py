@@ -54,6 +54,7 @@ class demoplate(threading.Thread):
         self.mousepos = np.array([0, 0], dtype = np.int)
         self.mousediff = np.array([0, 0], dtype = np.int)
         self.mousewheelpos = 0
+        self.mousewheeldiff = 0
 
     def _initglfw(self):
         '''
@@ -156,5 +157,6 @@ class demoplate(threading.Thread):
         Called when the mouse wheel is used. Default: Sets the mousewheelpos
         attribute.
         '''
+        self.mousewheeldiff = self.mousewheelpos - wheelpos
         self.mousewheelpos = wheelpos
         

@@ -80,13 +80,19 @@ class ObjFileParser(object):
                 if len(line) > 0:
                     if line[0] in handlers:
                         try:
-                            handlers[line[0]](*line[1])
+                            handlers[line[0]](line[1])
                         except Exception as e:
                             raise Exception, 'Parsing error at line %i: %s' % (i, e)
         
         if not self.allfacesclean:
             self._cleanfaces()
         del self.allfacesclean
+        # Determine the BB
+        self.minpos = np.amin(self.v, axis=0)[:3]
+        self.maxpos = np.amax(self.v, axis=0)[:3]
+        self.scale = self.maxpos - self.minpos
+        
+        
     
     def _v(self, args):
         args = args.split()
@@ -260,7 +266,13 @@ class ObjFileParser(object):
         """
         # Build the vertices buffer by simply concatenating data:
         vertices = []
-        for vertex in zip(self.v, self.vn, self.vt):
+        attr = [self.v]
+        if len(self.vn) > 0:
+            attr.append(self.vn)
+        if len(self.vt) > 0:
+            attr.append(self.vt)
+        
+        for vertex in zip(*attr):
             vertexdata = []
             for attr in layout:
                 vertexdata.append(vertex[attr])
